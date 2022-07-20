@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/ajikamaludin/go-fiber-rest/app/models"
 	gormdb "github.com/ajikamaludin/go-fiber-rest/pkg/gorm.db"
+	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/constants"
 	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/validator"
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,7 +18,11 @@ func GetAllNotes(c *fiber.Ctx) error {
 
 	db.Find(&notes)
 
-	return c.Status(fiber.StatusOK).JSON(notes)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  constants.STATUS_SUCCESS,
+		"message": "Ok",
+		"data":    notes,
+	})
 }
 
 func GetNoteById(c *fiber.Ctx) error {
@@ -34,11 +39,16 @@ func GetNoteById(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  constants.STATUS_FAIL,
 			"message": "note not found",
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(note)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  constants.STATUS_OK,
+		"message": "note found",
+		"data":    note,
+	})
 }
 
 func CreateNote(c *fiber.Ctx) error {
@@ -68,7 +78,11 @@ func CreateNote(c *fiber.Ctx) error {
 
 	db.Create(&note)
 
-	return c.Status(fiber.StatusCreated).JSON(note)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status":  constants.STATUS_OK,
+		"message": "note created",
+		"data":    note,
+	})
 }
 
 func UpdateNote(c *fiber.Ctx) error {
@@ -77,13 +91,18 @@ func UpdateNote(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&noteRequest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  constants.STATUS_FAIL,
 			"message": err.Error(),
 		})
 	}
 
 	errors := validator.ValidateRequest(noteRequest)
 	if errors != nil {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"status":  constants.STATUS_FAIL,
+			"message": "error",
+			"errors":  errors,
+		})
 	}
 
 	// find records
@@ -99,6 +118,7 @@ func UpdateNote(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  constants.STATUS_FAIL,
 			"message": "note not found",
 		})
 	}
@@ -106,7 +126,11 @@ func UpdateNote(c *fiber.Ctx) error {
 	// Update
 	db.Model(&note).Updates(noteRequest)
 
-	return c.Status(fiber.StatusCreated).JSON(note)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status":  constants.STATUS_OK,
+		"message": "note updated",
+		"data":    note,
+	})
 }
 
 func DeleteNote(c *fiber.Ctx) error {
@@ -123,6 +147,7 @@ func DeleteNote(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  constants.STATUS_FAIL,
 			"message": "note not found",
 		})
 	}
