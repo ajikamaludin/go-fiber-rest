@@ -19,9 +19,16 @@ type DbConfig struct {
 	Password string
 }
 
+type RedisConfig struct {
+	Host     string
+	Port     string
+	Password string
+}
+
 type Configs struct {
-	Appconfig AppConfig
-	Dbconfig  DbConfig
+	Appconfig   AppConfig
+	Dbconfig    DbConfig
+	Redisconfig RedisConfig
 }
 
 var lock = &sync.Mutex{}
@@ -42,6 +49,11 @@ func GetInstance() *Configs {
 				Dbname:   os.Getenv("DB_NAME"),
 				Username: os.Getenv("DB_USER"),
 				Password: os.Getenv("DB_PASS"),
+			},
+			Redisconfig: RedisConfig{
+				Host:     os.Getenv("REDIS_HOST"),
+				Port:     os.Getenv("REDIS_PORT"),
+				Password: os.Getenv("REDIS_PASSWORD"),
 			},
 		}
 		lock.Unlock()

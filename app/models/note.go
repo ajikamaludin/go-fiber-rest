@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+
+	"gorm.io/gorm"
+)
 
 type Note struct {
 	gorm.Model
@@ -8,4 +12,8 @@ type Note struct {
 	Title   string `validate:"required,min=3"`
 	Note    string `validate:"required,min=3"`
 	Tag     string
+}
+
+func (note Note) MarshalBinary() ([]byte, error) {
+	return []byte(fmt.Sprintf("%v-%v", note.Title, note.Note)), nil
 }

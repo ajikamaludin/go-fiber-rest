@@ -1,22 +1,64 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"time"
+
 	"github.com/ajikamaludin/go-fiber-rest/app/models"
 	gormdb "github.com/ajikamaludin/go-fiber-rest/pkg/gorm.db"
+	redisclient "github.com/ajikamaludin/go-fiber-rest/pkg/redis.client"
 	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/constants"
 	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/validator"
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetAllNotes(c *fiber.Ctx) error {
-	db, err := gormdb.GetInstance()
-	if err != nil {
-		return err
-	}
+// need to optimize
+var ctx = context.Background()
 
+func GetAllNotes(c *fiber.Ctx) error {
 	var notes []models.Note
 
-	db.Find(&notes)
+	redis := redisclient.GetInstance()
+	renotes, err := redis.Get(ctx, "allnotes").Result()
+	if err != nil {
+		fmt.Println("err", err)
+	}
+
+	err = json.Unmarshal([]byte(renotes), &notes)
+	if err != nil {
+		fmt.Println("[GetAllNotes][REDIS]Empty Notes")
+		db, err := gormdb.GetInstance()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"status":  constants.STATUS_FAIL,
+				"message": "Internal Service Error",
+				"error":   err.Error(),
+			})
+		}
+		db.Find(&notes)
+
+		val, err := json.Marshal(&notes)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"status":  constants.STATUS_FAIL,
+				"message": "Internal Service Error",
+				"error":   err.Error(),
+			})
+		}
+
+		err = redis.Set(ctx, "allnotes", string(val), 30*time.Second).Err()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"status":  constants.STATUS_FAIL,
+				"message": "Internal Service Error",
+				"error":   err.Error(),
+			})
+		}
+	} else {
+		fmt.Println("[GetAllNotes][REDIS]Get Notes")
+	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  constants.STATUS_SUCCESS,
