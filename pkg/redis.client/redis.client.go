@@ -62,3 +62,9 @@ func Set(key string, model interface{}, expired time.Duration) error {
 
 	return nil
 }
+
+func Remove(key string) error {
+	redis := GetInstance()
+	fmt.Println("[REDIS][REMOVE] : ", key)
+	return redis.Do(ctx, "DEL", key).Err()
+}

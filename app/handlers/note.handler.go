@@ -142,6 +142,8 @@ func UpdateNote(c *fiber.Ctx) error {
 
 	// Update
 	db.Model(&note).Updates(noteRequest)
+	key := "note+" + id
+	redisclient.Remove(key)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  constants.STATUS_OK,
@@ -170,6 +172,8 @@ func DeleteNote(c *fiber.Ctx) error {
 	}
 
 	db.Delete(&note)
+	key := "note+" + id
+	redisclient.Remove(key)
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
