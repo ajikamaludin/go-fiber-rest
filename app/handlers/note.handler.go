@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/ajikamaludin/go-fiber-rest/app/models"
@@ -14,21 +11,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// need to optimize
-var ctx = context.Background()
-
 func GetAllNotes(c *fiber.Ctx) error {
 	var notes []models.Note
 
-	redis := redisclient.GetInstance()
-	renotes, err := redis.Get(ctx, "allnotes").Result()
+	err := redisclient.Get("allnotes", &notes)
 	if err != nil {
-		fmt.Println("err", err)
-	}
-
-	err = json.Unmarshal([]byte(renotes), &notes)
-	if err != nil {
-		fmt.Println("[GetAllNotes][REDIS]Empty Notes")
 		db, err := gormdb.GetInstance()
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -39,25 +26,7 @@ func GetAllNotes(c *fiber.Ctx) error {
 		}
 		db.Find(&notes)
 
-		val, err := json.Marshal(&notes)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"status":  constants.STATUS_FAIL,
-				"message": "Internal Service Error",
-				"error":   err.Error(),
-			})
-		}
-
-		err = redis.Set(ctx, "allnotes", string(val), 30*time.Second).Err()
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"status":  constants.STATUS_FAIL,
-				"message": "Internal Service Error",
-				"error":   err.Error(),
-			})
-		}
-	} else {
-		fmt.Println("[GetAllNotes][REDIS]Get Notes")
+		redisclient.Set("allnotes", &notes, 30*time.Second)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -69,21 +38,27 @@ func GetAllNotes(c *fiber.Ctx) error {
 
 func GetNoteById(c *fiber.Ctx) error {
 	id := c.Params("id")
-
-	db, err := gormdb.GetInstance()
-
-	if err != nil {
-		return err
-	}
-
 	note := models.Note{}
-	err = db.First(&note, id).Error
 
+	key := "note+" + id
+	err := redisclient.Get(key, &note)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"status":  constants.STATUS_FAIL,
-			"message": "note not found",
-		})
+		db, err := gormdb.GetInstance()
+
+		if err != nil {
+			return err
+		}
+
+		err = db.First(&note, id).Error
+
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"status":  constants.STATUS_FAIL,
+				"message": "note not found",
+			})
+		}
+
+		redisclient.Set(key, &note, 30*time.Second)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

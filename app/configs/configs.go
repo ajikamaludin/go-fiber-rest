@@ -35,7 +35,7 @@ var lock = &sync.Mutex{}
 var configs *Configs
 
 func GetInstance() *Configs {
-	fmt.Println("configs", configs)
+	fmt.Println("[CONFIG] : ", &configs)
 	if configs == nil {
 		lock.Lock()
 		configs = &Configs{
