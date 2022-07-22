@@ -1,9 +1,8 @@
-package handlers
+package note
 
 import (
-	"time"
-
 	"github.com/ajikamaludin/go-fiber-rest/app/models"
+	noteRepository "github.com/ajikamaludin/go-fiber-rest/app/repository/note"
 	gormdb "github.com/ajikamaludin/go-fiber-rest/pkg/gorm.db"
 	redisclient "github.com/ajikamaludin/go-fiber-rest/pkg/redis.client"
 	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/constants"
@@ -14,19 +13,13 @@ import (
 func GetAllNotes(c *fiber.Ctx) error {
 	var notes []models.Note
 
-	err := redisclient.Get("allnotes", &notes)
+	err := noteRepository.GetAllNotes(&notes)
 	if err != nil {
-		db, err := gormdb.GetInstance()
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"status":  constants.STATUS_FAIL,
-				"message": "Internal Service Error",
-				"error":   err.Error(),
-			})
-		}
-		db.Find(&notes)
-
-		redisclient.Set("allnotes", &notes, 30*time.Second)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  constants.STATUS_FAIL,
+			"message": "Internal Service Error",
+			"error":   err.Error(),
+		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -40,25 +33,13 @@ func GetNoteById(c *fiber.Ctx) error {
 	id := c.Params("id")
 	note := models.Note{}
 
-	key := "note+" + id
-	err := redisclient.Get(key, &note)
+	err := noteRepository.GetNoteById(id, &note)
 	if err != nil {
-		db, err := gormdb.GetInstance()
-
-		if err != nil {
-			return err
-		}
-
-		err = db.First(&note, id).Error
-
-		if err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"status":  constants.STATUS_FAIL,
-				"message": "note not found",
-			})
-		}
-
-		redisclient.Set(key, &note, 30*time.Second)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  constants.STATUS_FAIL,
+			"message": "note not found",
+			"error":   err.Error(),
+		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

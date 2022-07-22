@@ -1,4 +1,4 @@
-package handlers
+package home
 
 import (
 	"github.com/ajikamaludin/go-fiber-rest/app/configs"

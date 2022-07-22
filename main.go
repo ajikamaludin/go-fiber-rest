@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
-	"github.com/ajikamaludin/go-fiber-rest/app/handlers"
+	"github.com/ajikamaludin/go-fiber-rest/app/configs"
+	apiRoute "github.com/ajikamaludin/go-fiber-rest/routers/api/v1"
+	exceptionRoute "github.com/ajikamaludin/go-fiber-rest/routers/exception"
+	homeRoute "github.com/ajikamaludin/go-fiber-rest/routers/home"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
@@ -18,15 +22,14 @@ func main() {
 	app := fiber.New()
 	app.Use(recover.New())
 
-	// route here
-	app.Get("/", handlers.Home)
+	// default here : /
+	homeRoute.HomeRoutes(app)
+	// api route : api/v1
+	apiRoute.ApiRoutes(app)
+	// handle 404
+	exceptionRoute.Routes(app)
 
-	// route Note
-	app.Get("/notes", handlers.GetAllNotes)
-	app.Post("/notes", handlers.CreateNote)
-	app.Get("/notes/:id", handlers.GetNoteById)
-	app.Put("/notes/:id", handlers.UpdateNote)
-	app.Delete("/notes/:id", handlers.DeleteNote)
-
-	log.Fatal(app.Listen(":3000"))
+	config := configs.GetInstance().Appconfig
+	listenPort := fmt.Sprintf(":%v", config.Port)
+	log.Fatal(app.Listen(listenPort))
 }

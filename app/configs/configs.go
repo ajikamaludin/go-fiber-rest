@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"fmt"
 	"os"
 	"sync"
 )
@@ -9,6 +8,7 @@ import (
 type AppConfig struct {
 	Name string
 	Env  string
+	Port string
 }
 
 type DbConfig struct {
@@ -35,13 +35,13 @@ var lock = &sync.Mutex{}
 var configs *Configs
 
 func GetInstance() *Configs {
-	fmt.Println("[CONFIG] : ", &configs)
 	if configs == nil {
 		lock.Lock()
 		configs = &Configs{
 			Appconfig: AppConfig{
 				Name: os.Getenv("APP_NAME"),
 				Env:  os.Getenv("APP_ENV"),
+				Port: os.Getenv("APP_PORT"),
 			},
 			Dbconfig: DbConfig{
 				Host:     os.Getenv("DB_HOST"),
@@ -58,5 +58,6 @@ func GetInstance() *Configs {
 		}
 		lock.Unlock()
 	}
+	// fmt.Println("[CONFIG] : ", &configs)
 	return configs
 }

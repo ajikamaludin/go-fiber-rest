@@ -16,7 +16,7 @@ var rdb *redis.Client
 var ctx = context.Background()
 
 func GetInstance() *redis.Client {
-	fmt.Println("[REDIS] : ", &rdb)
+	// fmt.Println("[REDIS] : ", &rdb)
 	if rdb == nil {
 		configs := configs.GetInstance()
 		addr := fmt.Sprintf("%s:%s", configs.Redisconfig.Host, configs.Redisconfig.Port)
@@ -33,7 +33,7 @@ func GetInstance() *redis.Client {
 
 func Get(key string, model interface{}) error {
 	redis := GetInstance()
-	fmt.Println("[REDIS][READ] : ", key)
+	// fmt.Println("[REDIS][READ] : ", key)
 	renotes, err := redis.Get(ctx, key).Result()
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func Get(key string, model interface{}) error {
 
 func Set(key string, model interface{}, expired time.Duration) error {
 	redis := GetInstance()
-	fmt.Println("[REDIS][WRITE] : ", key)
+	// fmt.Println("[REDIS][WRITE] : ", key)
 	val, err := json.Marshal(&model)
 	if err != nil {
 		return err
@@ -65,6 +65,6 @@ func Set(key string, model interface{}, expired time.Duration) error {
 
 func Remove(key string) error {
 	redis := GetInstance()
-	fmt.Println("[REDIS][REMOVE] : ", key)
+	// fmt.Println("[REDIS][REMOVE] : ", key)
 	return redis.Do(ctx, "DEL", key).Err()
 }

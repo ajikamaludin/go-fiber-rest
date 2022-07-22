@@ -14,7 +14,7 @@ var lock = &sync.Mutex{}
 var db *gorm.DB
 
 func GetInstance() (*gorm.DB, error) {
-	fmt.Println("[DATABASE] : ", db)
+	// fmt.Println("[DATABASE] : ", db)
 	if db == nil {
 		configs := configs.GetInstance()
 
