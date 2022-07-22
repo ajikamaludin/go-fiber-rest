@@ -12,11 +12,12 @@ type AppConfig struct {
 }
 
 type DbConfig struct {
-	Host     string
-	Port     string
-	Dbname   string
-	Username string
-	Password string
+	Host        string
+	Port        string
+	Dbname      string
+	Username    string
+	Password    string
+	DbIsMigrate bool
 }
 
 type RedisConfig struct {
@@ -44,11 +45,12 @@ func GetInstance() *Configs {
 				Port: os.Getenv("APP_PORT"),
 			},
 			Dbconfig: DbConfig{
-				Host:     os.Getenv("DB_HOST"),
-				Port:     os.Getenv("DB_PORT"),
-				Dbname:   os.Getenv("DB_NAME"),
-				Username: os.Getenv("DB_USER"),
-				Password: os.Getenv("DB_PASS"),
+				Host:        os.Getenv("DB_HOST"),
+				Port:        os.Getenv("DB_PORT"),
+				Dbname:      os.Getenv("DB_NAME"),
+				Username:    os.Getenv("DB_USER"),
+				Password:    os.Getenv("DB_PASS"),
+				DbIsMigrate: os.Getenv("DB_ISMIGRATE") == "true",
 			},
 			Redisconfig: RedisConfig{
 				Host:     os.Getenv("REDIS_HOST"),

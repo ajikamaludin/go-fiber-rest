@@ -8,7 +8,7 @@ import (
 
 func Home(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status": constants.STATUS_OK,
+		"status": constants.STATUS_SUCCESS,
 		"name":   configs.GetInstance().Appconfig.Name,
 	})
 }

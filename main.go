@@ -5,10 +5,11 @@ import (
 	"log"
 
 	"github.com/ajikamaludin/go-fiber-rest/app/configs"
-	apiRoute "github.com/ajikamaludin/go-fiber-rest/routers/api/v1"
-	exceptionRoute "github.com/ajikamaludin/go-fiber-rest/routers/exception"
-	homeRoute "github.com/ajikamaludin/go-fiber-rest/routers/home"
+	apiv1 "github.com/ajikamaludin/go-fiber-rest/routers/api/v1"
+	notfound "github.com/ajikamaludin/go-fiber-rest/routers/exception"
+	home "github.com/ajikamaludin/go-fiber-rest/routers/home"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 )
@@ -21,13 +22,14 @@ func main() {
 
 	app := fiber.New()
 	app.Use(recover.New())
+	app.Use(logger.New())
 
 	// default here : /
-	homeRoute.HomeRoutes(app)
+	home.HomeRoutes(app)
 	// api route : api/v1
-	apiRoute.ApiRoutes(app)
+	apiv1.ApiRoutes(app)
 	// handle 404
-	exceptionRoute.Routes(app)
+	notfound.Routes(app)
 
 	config := configs.GetInstance().Appconfig
 	listenPort := fmt.Sprintf(":%v", config.Port)

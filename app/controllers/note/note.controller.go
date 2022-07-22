@@ -43,7 +43,7 @@ func GetNoteById(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  constants.STATUS_OK,
+		"status":  constants.STATUS_SUCCESS,
 		"message": "note found",
 		"data":    note,
 	})
@@ -77,7 +77,7 @@ func CreateNote(c *fiber.Ctx) error {
 	db.Create(&note)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"status":  constants.STATUS_OK,
+		"status":  constants.STATUS_SUCCESS,
 		"message": "note created",
 		"data":    note,
 	})
@@ -127,7 +127,7 @@ func UpdateNote(c *fiber.Ctx) error {
 	redisclient.Remove(key)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"status":  constants.STATUS_OK,
+		"status":  constants.STATUS_SUCCESS,
 		"message": "note updated",
 		"data":    note,
 	})

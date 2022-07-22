@@ -1,5 +1,4 @@
 package constants
 
-const STATUS_SUCCESS = true
-const STATUS_FAIL = false
-const STATUS_OK = "Ok"
+const STATUS_SUCCESS = "succes"
+const STATUS_FAIL = "fail"
