@@ -14,6 +14,7 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 	Email     string         `validate:"required,min=3,email"`
 	Password  string         `validate:"required,min=3"`
+	Notes     []Note
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {

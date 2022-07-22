@@ -31,7 +31,7 @@ func main() {
 	// handle 404
 	notfound.Routes(app)
 
-	config := configs.GetInstance().Appconfig
-	listenPort := fmt.Sprintf(":%v", config.Port)
-	log.Fatal(app.Listen(listenPort))
+	config := configs.GetInstance()
+	listen := fmt.Sprintf(":%v", config.Appconfig.Port)
+	log.Fatal(app.Listen(listen))
 }

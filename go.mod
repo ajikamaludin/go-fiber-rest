@@ -9,6 +9,7 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/gofiber/utils v0.0.10 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect
@@ -39,6 +40,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber v1.14.6
 	github.com/gofiber/fiber/v2 v2.35.0
+	github.com/gofiber/jwt/v3 v3.2.13
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
 	gorm.io/driver/postgres v1.3.8

@@ -2,6 +2,7 @@ package configs
 
 import (
 	"os"
+	"strconv"
 	"sync"
 )
 
@@ -20,6 +21,11 @@ type DbConfig struct {
 	DbIsMigrate bool
 }
 
+type JwtConfig struct {
+	Secret  string
+	Expired int
+}
+
 type RedisConfig struct {
 	Host     string
 	Port     string
@@ -29,6 +35,7 @@ type RedisConfig struct {
 type Configs struct {
 	Appconfig   AppConfig
 	Dbconfig    DbConfig
+	Jwtconfig   JwtConfig
 	Redisconfig RedisConfig
 }
 
@@ -38,6 +45,8 @@ var configs *Configs
 func GetInstance() *Configs {
 	if configs == nil {
 		lock.Lock()
+		JwtExpired, _ := strconv.Atoi(os.Getenv("JWT_EXPIRED_SECOND"))
+
 		configs = &Configs{
 			Appconfig: AppConfig{
 				Name: os.Getenv("APP_NAME"),
@@ -51,6 +60,10 @@ func GetInstance() *Configs {
 				Username:    os.Getenv("DB_USER"),
 				Password:    os.Getenv("DB_PASS"),
 				DbIsMigrate: os.Getenv("DB_ISMIGRATE") == "true",
+			},
+			Jwtconfig: JwtConfig{
+				Secret:  os.Getenv("JWT_SECRET"),
+				Expired: int(JwtExpired),
 			},
 			Redisconfig: RedisConfig{
 				Host:     os.Getenv("REDIS_HOST"),

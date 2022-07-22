@@ -69,9 +69,8 @@ func CreateNote(c *fiber.Ctx) error {
 	}
 
 	var note = models.Note{
-		User_id: "1",
-		Title:   noteRequest.Note,
-		Note:    noteRequest.Title,
+		Title: noteRequest.Note,
+		Note:  noteRequest.Title,
 	}
 
 	db.Create(&note)
