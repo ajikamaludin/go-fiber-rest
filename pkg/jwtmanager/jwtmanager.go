@@ -5,6 +5,9 @@ import (
 
 	"github.com/ajikamaludin/go-fiber-rest/app/configs"
 	"github.com/ajikamaludin/go-fiber-rest/app/models"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -21,4 +24,11 @@ func CreateToken(user *models.User) string {
 	token, _ := unsignToken.SignedString([]byte(configs.Jwtconfig.Secret))
 
 	return token
+}
+
+func GetUserId(c *fiber.Ctx) (UserId uuid.UUID) {
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	UserId, _ = uuid.Parse(claims["user_id"].(string))
+	return
 }

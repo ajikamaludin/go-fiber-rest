@@ -4,13 +4,14 @@ import (
 	"github.com/ajikamaludin/go-fiber-rest/app/models"
 	gormdb "github.com/ajikamaludin/go-fiber-rest/pkg/gorm.db"
 	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/constants"
+	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/converter"
 	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/validator"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func CreateUser(c *fiber.Ctx) error {
-	userRequest := new(models.User)
+	userRequest := new(models.UserReq)
 
 	if err := c.BodyParser(&userRequest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -48,7 +49,7 @@ func CreateUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  constants.STATUS_SUCCESS,
 		"message": "user created",
-		"data":    user,
+		"data":    user.ToUserRes(),
 	})
 }
 
@@ -58,12 +59,12 @@ func GetAllUsers(c *fiber.Ctx) error {
 		return err
 	}
 
-	users := &models.User{}
+	users := []models.User{}
 	db.Find(&users)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  constants.STATUS_SUCCESS,
 		"message": "Ok",
-		"data":    users,
+		"data":    converter.MapUserToUserRes(users),
 	})
 }

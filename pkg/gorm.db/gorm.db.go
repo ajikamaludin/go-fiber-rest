@@ -14,7 +14,6 @@ var lock = &sync.Mutex{}
 var db *gorm.DB
 
 func GetInstance() (*gorm.DB, error) {
-	// fmt.Println("[DATABASE] : ", db)
 	if db == nil {
 		configs := configs.GetInstance()
 
@@ -41,5 +40,6 @@ func GetInstance() (*gorm.DB, error) {
 		}
 		return db, nil
 	}
+	// fmt.Println("[DATABASE] : ", db)
 	return db, nil
 }

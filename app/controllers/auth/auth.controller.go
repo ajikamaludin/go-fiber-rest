@@ -11,7 +11,7 @@ import (
 )
 
 func Login(c *fiber.Ctx) error {
-	userRequest := new(models.User)
+	userRequest := new(models.UserReq)
 
 	_ = c.BodyParser(&userRequest)
 
@@ -19,7 +19,7 @@ func Login(c *fiber.Ctx) error {
 	if errors != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
 			"status":  constants.STATUS_FAIL,
-			"message": "request body mismatch",
+			"message": "request body invalid",
 			"error":   errors,
 		})
 	}
@@ -32,7 +32,7 @@ func Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  constants.STATUS_FAIL,
-			"message": "credentials mismatch",
+			"message": "credentials invalid",
 			"error":   err.Error(),
 		})
 	}
@@ -40,14 +40,14 @@ func Login(c *fiber.Ctx) error {
 	accessToken := jwtmanager.CreateToken(user)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"user":         user,
+		"user":         user.ToUserRes(),
 		"accessToken":  accessToken,
 		"refreshToken": "",
 	})
 }
 
 func Register(c *fiber.Ctx) error {
-	userRequest := new(models.User)
+	userRequest := new(models.UserReq)
 
 	_ = c.BodyParser(&userRequest)
 
@@ -55,14 +55,15 @@ func Register(c *fiber.Ctx) error {
 	if errors != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
 			"status":  constants.STATUS_FAIL,
-			"message": "request body mismatch",
+			"message": "request body invalid",
 			"error":   errors,
 		})
 	}
 
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(userRequest.Password), bcrypt.DefaultCost)
 	user := &models.User{
 		Email:    userRequest.Email,
-		Password: userRequest.Password,
+		Password: string(hashedPassword),
 	}
 	err := userRepository.GetUserByEmail(userRequest.Email, user)
 	if err == nil {
@@ -78,7 +79,7 @@ func Register(c *fiber.Ctx) error {
 	accessToken := jwtmanager.CreateToken(user)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"user":         user,
+		"user":         user.ToUserRes(),
 		"accessToken":  accessToken,
 		"refreshToken": "",
 	})

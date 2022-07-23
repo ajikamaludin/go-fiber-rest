@@ -3,9 +3,8 @@ package note
 import (
 	"github.com/ajikamaludin/go-fiber-rest/app/models"
 	noteRepository "github.com/ajikamaludin/go-fiber-rest/app/repository/note"
-	gormdb "github.com/ajikamaludin/go-fiber-rest/pkg/gorm.db"
-	redisclient "github.com/ajikamaludin/go-fiber-rest/pkg/redis.client"
 	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/constants"
+	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/converter"
 	"github.com/ajikamaludin/go-fiber-rest/pkg/utils/validator"
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,7 +12,7 @@ import (
 func GetAllNotes(c *fiber.Ctx) error {
 	var notes []models.Note
 
-	err := noteRepository.GetAllNotes(&notes)
+	err := noteRepository.GetAllNotes(c, &notes)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  constants.STATUS_FAIL,
@@ -22,10 +21,12 @@ func GetAllNotes(c *fiber.Ctx) error {
 		})
 	}
 
+	notesRes := converter.MapNoteToNoteRes(notes)
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  constants.STATUS_SUCCESS,
 		"message": "Ok",
-		"data":    notes,
+		"data":    notesRes,
 	})
 }
 
@@ -45,53 +46,33 @@ func GetNoteById(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  constants.STATUS_SUCCESS,
 		"message": "note found",
-		"data":    note,
+		"data":    note.ToNoteRes(),
 	})
 }
 
 func CreateNote(c *fiber.Ctx) error {
-	noteRequest := new(models.Note)
+	noteRequest := new(models.NoteReq)
 
-	if err := c.BodyParser(&noteRequest); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": err.Error(),
-		})
-	}
+	c.BodyParser(&noteRequest)
 
 	errors := validator.ValidateRequest(noteRequest)
 	if errors != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
 	}
 
-	db, err := gormdb.GetInstance()
-	if err != nil {
-		return err
-	}
-
-	var note = models.Note{
-		Title: noteRequest.Note,
-		Note:  noteRequest.Title,
-	}
-
-	db.Create(&note)
+	note, _ := noteRepository.CreateNote(c, noteRequest)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  constants.STATUS_SUCCESS,
 		"message": "note created",
-		"data":    note,
+		"data":    note.ToNoteRes(),
 	})
 }
 
 func UpdateNote(c *fiber.Ctx) error {
-	// validate request first
-	noteRequest := new(models.Note)
+	noteRequest := new(models.NoteReq)
 
-	if err := c.BodyParser(&noteRequest); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  constants.STATUS_FAIL,
-			"message": err.Error(),
-		})
-	}
+	c.BodyParser(&noteRequest)
 
 	errors := validator.ValidateRequest(noteRequest)
 	if errors != nil {
@@ -102,16 +83,9 @@ func UpdateNote(c *fiber.Ctx) error {
 		})
 	}
 
-	// find records
 	id := c.Params("id")
-
-	db, err := gormdb.GetInstance()
-	if err != nil {
-		return err
-	}
-
 	note := models.Note{}
-	err = db.First(&note, id).Error
+	err := noteRepository.GetNoteById(id, &note)
 
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -120,29 +94,20 @@ func UpdateNote(c *fiber.Ctx) error {
 		})
 	}
 
-	// Update
-	db.Model(&note).Updates(noteRequest)
-	key := "note+" + id
-	redisclient.Remove(key)
+	noteRepository.UpdateNote(&note, noteRequest)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  constants.STATUS_SUCCESS,
 		"message": "note updated",
-		"data":    note,
+		"data":    note.ToNoteRes(),
 	})
 }
 
 func DeleteNote(c *fiber.Ctx) error {
-	// find records
 	id := c.Params("id")
 
-	db, err := gormdb.GetInstance()
-	if err != nil {
-		return err
-	}
-
 	note := models.Note{}
-	err = db.First(&note, id).Error
+	err := noteRepository.GetNoteById(id, &note)
 
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -151,9 +116,7 @@ func DeleteNote(c *fiber.Ctx) error {
 		})
 	}
 
-	db.Delete(&note)
-	key := "note+" + id
-	redisclient.Remove(key)
+	noteRepository.DeleteNote(&note)
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
